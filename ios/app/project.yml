@@ -1,0 +1,66 @@
+name: Parakeet
+options:
+  bundleIdPrefix: app.parakeet
+  deploymentTarget:
+    iOS: "26.0"
+packages:
+  FluidAudio:
+    url: https://github.com/FluidInference/FluidAudio
+    revision: c79c4106b954f81205113c3343e5a7e59a1089b5
+settings:
+  base:
+    DEVELOPMENT_TEAM: 63H7DU5JX4
+    CODE_SIGN_STYLE: Automatic
+    SWIFT_VERSION: "5.0"
+    TARGETED_DEVICE_FAMILY: "1"
+targets:
+  Parakeet:
+    type: application
+    platform: iOS
+    sources: [Parakeet, Shared]
+    dependencies:
+      - package: FluidAudio
+      - target: Keyboard
+        embed: true
+    entitlements:
+      path: Parakeet/Parakeet.entitlements
+      properties:
+        com.apple.security.application-groups: [group.app.parakeet.dictate.rk]
+    info:
+      path: Parakeet/Info.plist
+      properties:
+        CFBundleDisplayName: Talkit
+        UILaunchScreen: {}
+        UIBackgroundModes: [audio]
+        NSMicrophoneUsageDescription: Talkit listens only while you dictate and turns your speech into text on this phone.
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        CFBundleURLTypes:
+          - CFBundleURLName: app.parakeet
+            CFBundleURLSchemes: [parakeet]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.parakeet.dictate.rk
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+  Keyboard:
+    type: app-extension
+    platform: iOS
+    sources: [Keyboard, Shared]
+    entitlements:
+      path: Keyboard/Keyboard.entitlements
+      properties:
+        com.apple.security.application-groups: [group.app.parakeet.dictate.rk]
+    info:
+      path: Keyboard/Info.plist
+      properties:
+        CFBundleDisplayName: Talkit
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.keyboard-service
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).KeyboardViewController
+          NSExtensionAttributes:
+            RequestsOpenAccess: true
+            PrimaryLanguage: en-US
+            IsASCIICapable: false
+            PrefersRightToLeft: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.parakeet.dictate.rk.keyboard

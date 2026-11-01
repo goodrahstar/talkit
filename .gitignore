@@ -1,0 +1,10 @@
+.DS_Store
+.claude/
+.unlazy/
+# generated
+*.xcodeproj/
+DerivedData/
+build/
+build-sim/
+.build/
+*.log

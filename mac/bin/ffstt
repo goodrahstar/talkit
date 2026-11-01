@@ -1,0 +1,101 @@
+#!/bin/bash
+# Switch FreeFlow speech-to-text between local Parakeet (Neural Engine) and Groq Whisper.
+# Usage: ffstt ultra | v3 | groq | on | off | status   (parakeet = ultra)
+# Only the chosen Parakeet model is loaded; choosing Groq unloads it, and an idle model unloads
+# after 5 minutes.
+set -euo pipefail
+
+LABEL="com.rahul.parakeet-server"
+PLIST="$HOME/Library/LaunchAgents/$LABEL.plist"
+DOMAIN="gui/$(id -u)"
+PORT=5092
+LOCAL_URL="http://127.0.0.1:$PORT/v1"
+SETTINGS="$HOME/Library/Application Support/FreeFlow/.settings"
+BUNDLE="com.zachlatta.freeflow"
+
+settings_edit() { # settings_edit set|unset
+  /usr/bin/python3 -I - "$SETTINGS" "$1" "$LOCAL_URL" <<'EOF'
+import json, os, sys
+path, action, url = sys.argv[1:4]
+d = json.load(open(path)) if os.path.exists(path) else {}
+if action == "set":
+    d["transcription_api_url"] = url
+    d["transcription_api_key"] = "local"
+else:
+    d.pop("transcription_api_url", None)
+    d.pop("transcription_api_key", None)
+tmp = path + ".tmp"
+with open(tmp, "w") as f:
+    json.dump(d, f)
+os.chmod(tmp, 0o600)
+os.replace(tmp, path)
+EOF
+}
+
+quit_freeflow() {
+  osascript -e 'quit app "FreeFlow"' >/dev/null 2>&1 || true
+  for _ in $(seq 1 50); do pgrep -f FreeFlow.app/Contents/MacOS/FreeFlow >/dev/null || return 0; sleep 0.2; done
+  pkill -f FreeFlow.app/Contents/MacOS/FreeFlow || true
+  sleep 1
+}
+
+server_up() { curl -sf --max-time 2 "http://127.0.0.1:$PORT/health" >/dev/null; }
+
+start_server() {
+  launchctl enable "$DOMAIN/$LABEL"
+  launchctl print "$DOMAIN/$LABEL" >/dev/null 2>&1 || launchctl bootstrap "$DOMAIN" "$PLIST"
+  for _ in $(seq 1 60); do server_up && return 0; sleep 0.5; done
+  echo "Parakeet server did not start. Log: ~/parakeet-server/server.log" >&2
+  exit 1
+}
+
+current() {
+  local url model
+  url=$(/usr/bin/python3 -I -c 'import json,sys;print(json.load(open(sys.argv[1])).get("transcription_api_url",""))' "$SETTINGS" 2>/dev/null || true)
+  if [ "$url" != "$LOCAL_URL" ]; then echo groq; return; fi
+  model=$(defaults read "$BUNDLE" transcription_model 2>/dev/null || true)
+  case "$model" in *v3*) echo v3 ;; *) echo ultra ;; esac
+}
+
+use_local() { # use_local parakeet-ultra|parakeet-v3
+  start_server
+  curl -sf --max-time 60 -X POST "http://127.0.0.1:$PORT/activate/$1" >/dev/null \
+    || { echo "Could not load $1. Log: ~/parakeet-server/server.log" >&2; exit 1; }
+  quit_freeflow
+  settings_edit set
+  defaults write "$BUNDLE" transcription_model -string "$1"
+  defaults write "$BUNDLE" transcription_timeout_seconds -float 60
+  open -a FreeFlow
+  echo "FreeFlow STT: $1 (Neural Engine, local)"
+}
+
+case "${1:-status}" in
+  ultra|parakeet) use_local parakeet-ultra ;;
+  v3) use_local parakeet-v3 ;;
+  groq)
+    curl -sf --max-time 5 -X POST "http://127.0.0.1:$PORT/unload" >/dev/null 2>&1 || true
+    quit_freeflow
+    settings_edit unset
+    defaults delete "$BUNDLE" transcription_model 2>/dev/null || true
+    defaults delete "$BUNDLE" transcription_timeout_seconds 2>/dev/null || true
+    open -a FreeFlow
+    echo "FreeFlow STT: groq (whisper-large-v3)"
+    ;;
+  on)
+    start_server
+    echo "Parakeet server: on (starts at login)"
+    ;;
+  off)
+    if [ "$(current)" != groq ]; then "$0" groq; fi
+    launchctl bootout "$DOMAIN/$LABEL" 2>/dev/null || true
+    launchctl disable "$DOMAIN/$LABEL"
+    echo "Parakeet server: off (stays off after login)"
+    ;;
+  status)
+    mode=$(current)
+    if server_up; then srv="running"; else srv="stopped"; fi
+    echo "FreeFlow STT: $mode | Parakeet server: $srv"
+    ;;
+  *)
+    echo "Usage: ffstt ultra | v3 | groq | on | off | status" >&2; exit 2 ;;
+esac
