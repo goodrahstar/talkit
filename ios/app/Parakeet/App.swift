@@ -83,7 +83,7 @@ struct MainView: View {
         switch dictation.state {
         case .loading:
             switch dictation.modelStatus {
-            case .missing: return "tap the cloud to download the model (about 600 MB)"
+            case .missing: return "tap the cloud to download the model (about 460 MB)"
             case .downloading(let f): return "downloading model · \(Int(f * 100))%"
             default: return "loading model"
             }
@@ -168,7 +168,7 @@ struct GuideView: View {
                 Section("set up once") {
                     step(1, "open **Settings → General → Keyboard → Keyboards → Add New Keyboard** and pick **Talkit**.")
                     step(2, "tap **Talkit** in that list and turn on **Allow Full Access**. the keyboard needs it to talk to this app.")
-                    step(3, "back here, tap the **cloud** in the top right to download the model (about 600 MB). wait for the green check.")
+                    step(3, "back here, tap the **cloud** in the top right to download the model (about 460 MB). wait for the green check.")
                     step(4, "set **keep mic ready** to 60 min so you rarely have to open this app.")
                     Button("open Settings") {
                         if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
