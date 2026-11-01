@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en" data-variant="orchard">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Talkit for iPhone</title>
+<meta name="description" content="Hold to talk, let go, and your words are typed in any app. A free keyboard for iPhone that runs the speech model on the phone itself.">
+<link rel="icon" href="{{ICON}}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400..700&family=Caveat:wght@500..700&display=swap">
+<style>
+{{TOKENS}}
+</style>
+<style>
+  /* Talkit brand: orchard structure, accent swapped for the app icon's orange */
+  :root[data-variant="orchard"] { --accent: #d97757; --accent-ink: #a8492b; --accent-hover: #c8623f; --accent-tint: #fbe9e2; --accent-edge: #ecd3c8; --eyebrow: #a8492b; }
+  @media (prefers-color-scheme: dark) { :root[data-variant="orchard"]:not([data-theme="light"]) { --accent: #e58a6b; --accent-ink: #f0a184; --eyebrow: #f0a184; --accent-tint: rgba(229,138,107,.14); } }
+  :root[data-theme="dark"][data-variant="orchard"] { --accent: #e58a6b; --accent-ink: #f0a184; --eyebrow: #f0a184; --accent-tint: rgba(229,138,107,.14); }
+  [data-variant="orchard"] .marker::before { background: rgba(217, 119, 87, .26); }
+
+  .site-header .mark { border-radius: 8px; }
+  .hero { padding-top: 56px; }
+  .hero h1 { margin-top: 8px; max-width: 16ch; margin-inline: auto; }
+  .hero .lede { margin: 18px auto 0; max-width: 40ch; }
+  .hero .btn { margin-top: 26px; }
+  .hero .fine { margin-top: 12px; }
+
+  /* ---- hero demo: a rebuilt iPhone, never a screenshot ---- */
+  .stage { position: relative; display: grid; place-items: center; margin-top: 56px; }
+  .phone { position: relative; width: 300px; height: 612px; padding: 11px; border-radius: 52px; background: #111; box-shadow: 0 0 0 1.5px #2a2a2a, 0 30px 60px -20px rgba(0,0,0,.35); }
+  .screen { position: relative; height: 100%; border-radius: 42px; overflow: hidden; background: #efeae2; display: flex; flex-direction: column; font: 13px/1.35 -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; color: #111b21; }
+  .island { position: absolute; top: 9px; left: 50%; width: 88px; height: 26px; margin-left: -44px; border-radius: 20px; background: #000; z-index: 3; }
+  .status { display: flex; justify-content: space-between; padding: 14px 26px 0 30px; height: 44px; font-size: 13px; font-weight: 600; }
+  .status .mic-dot { width: 6px; height: 6px; border-radius: 50%; background: #ff9f0a; display: inline-block; margin: 0 0 1px 6px; vertical-align: middle; }
+  .chat-head { display: flex; align-items: center; gap: 10px; padding: 6px 14px 10px; background: #f6f6f6; border-bottom: .5px solid rgba(0,0,0,.1); }
+  .chat-head .back { color: #007aff; font-size: 22px; line-height: 1; }
+  .chat-head .face { width: 32px; height: 32px; border-radius: 50%; background: #c7b9ab; display: grid; place-items: center; color: #fff; font-weight: 600; font-size: 13px; }
+  .chat-head b { display: block; font-size: 14px; }
+  .chat-head small { color: #667781; font-size: 11px; }
+  .thread { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 6px; padding: 10px 10px 8px; overflow: hidden; }
+  .bubble { max-width: 78%; padding: 6px 9px 7px; border-radius: 10px; background: #fff; box-shadow: 0 1px .5px rgba(0,0,0,.13); font-size: 12.5px; }
+  .bubble small { display: block; text-align: right; color: #667781; font-size: 9.5px; margin-top: 2px; }
+  .bubble.me { align-self: flex-end; background: #d9fdd3; }
+  .bubble.sent { animation: pop .35s var(--ease-spring) both; }
+  @keyframes pop { from { opacity: 0; transform: translateY(8px) scale(.96); } }
+  .compose { display: flex; align-items: flex-end; gap: 6px; padding: 6px 8px 8px; background: #f6f6f6; }
+  .field { flex: 1; min-height: 30px; padding: 6px 12px; border-radius: 16px; background: #fff; border: .5px solid rgba(0,0,0,.12); font-size: 12.5px; color: #111b21; }
+  .field:empty::before { content: "Message"; color: #8696a0; }
+  .field .caret { display: inline-block; width: 1.5px; height: 14px; margin-left: 1px; vertical-align: -2px; background: #007aff; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .send { width: 30px; height: 30px; border-radius: 50%; background: #25d366; display: grid; place-items: center; flex: none; }
+  .send svg { width: 14px; height: 14px; fill: #fff; }
+
+  .kb { padding: 8px 6px 22px; background: #d1d3d9; display: grid; gap: 8px; }
+  .kb-bar { height: 132px; border-radius: 14px; background: #fff; display: grid; place-content: center; text-align: center; gap: 4px; transition: background .2s var(--ease-out), color .2s var(--ease-out), transform .25s var(--ease-spring); }
+  .kb-bar b { font-size: 15px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 7px; }
+  .kb-bar small { font-size: 10.5px; opacity: .55; }
+  .kb-bar svg { width: 15px; height: 15px; fill: currentColor; }
+  .kb-row { display: flex; gap: 6px; height: 38px; }
+  .kb-row span { display: grid; place-items: center; width: 44px; border-radius: 7px; background: #abb0bb; color: #000; font-size: 15px; box-shadow: 0 1px 0 rgba(0,0,0,.25); }
+  .kb-row span.space { flex: 1; background: #fff; font-size: 12px; }
+  .wave { display: none; gap: 3px; align-items: center; height: 18px; }
+  .wave i { width: 3px; border-radius: 2px; background: currentColor; animation: wave .9s ease-in-out infinite; }
+  .wave i:nth-child(2) { animation-delay: .15s } .wave i:nth-child(3) { animation-delay: .3s } .wave i:nth-child(4) { animation-delay: .45s } .wave i:nth-child(5) { animation-delay: .6s }
+  @keyframes wave { 0%, 100% { height: 4px; } 50% { height: 16px; } }
+
+  /* states driven by data-step on .phone */
+  .phone[data-step="listen"] .kb-bar { background: #111; color: #fff; transform: scale(.98); }
+  .phone[data-step="listen"] .kb-bar .wave { display: flex; }
+  .phone[data-step="listen"] .kb-bar .mic { display: none; }
+  .phone[data-step="write"] .kb-bar { background: #fff; }
+
+  .finger { position: absolute; left: 50%; bottom: 120px; width: 46px; height: 46px; margin-left: -23px; border-radius: 50%; background: rgba(217,119,87,.28); border: 2px solid rgba(217,119,87,.7); opacity: 0; transform: scale(1.3); transition: opacity .2s, transform .25s var(--ease-spring); z-index: 4; pointer-events: none; }
+  .phone[data-step="listen"] .finger { opacity: 1; transform: scale(1); }
+
+  .stage .annotate { left: calc(50% + 175px); top: 52%; width: 180px; --ink-local: var(--accent-ink); }
+  .stage .annotate svg { margin: 6px 0 0 -10px; transform: scaleX(-1); }
+  .stage .annotate-l { left: auto; right: calc(50% + 175px); top: 30%; text-align: right; }
+  .stage .annotate-l svg { transform: none; margin: 6px 0 0 60px; }
+  @media (max-width: 760px) { .stage .annotate { display: none; } }
+  .caption-steps { margin-top: 22px; }
+
+  /* situations */
+  .sits { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 32px; text-align: left; }
+  .sit { background: var(--surface); border: var(--card-border); border-radius: var(--r-lg); padding: 26px 24px; display: grid; gap: 14px; align-content: start; }
+  .sit .when { color: var(--accent-ink); font-size: var(--t-xs); font-weight: 600; }
+  .sit .pain { color: var(--ink); font-size: 19px; line-height: 1.35; letter-spacing: -.02em; font-weight: 500; }
+  .sit .fix { color: var(--ink-3); font-size: var(--t-sm); line-height: 1.55; padding-top: 14px; border-top: var(--hair); }
+  .sit .fix b { color: var(--ink); font-weight: 500; }
+  @media (max-width: 860px) { .sits { grid-template-columns: minmax(0, 1fr); } }
+
+  /* how it works */
+  .how { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin-top: 32px; }
+  .how article { background: var(--surface); border: var(--card-border); border-radius: var(--r-lg); padding: 28px 22px 24px; text-align: center; display: grid; gap: 10px; justify-items: center; }
+  .how .glyph { width: 64px; height: 64px; border-radius: 18px; display: grid; place-items: center; background: var(--accent-tint); color: var(--accent-ink); margin-bottom: 6px; }
+  .how .glyph svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .how h3 { font-size: 20px; font-weight: 500; letter-spacing: -.02em; }
+  .how p { color: var(--ink-3); font-size: 13px; line-height: 1.6; max-width: 26ch; }
+  @media (max-width: 760px) { .how { grid-template-columns: minmax(0, 1fr); } }
+
+  .stat p a { color: var(--ink-2); text-decoration: underline; text-underline-offset: 2px; }
+  .limits { margin-top: 28px; display: grid; gap: 12px; text-align: left; }
+  .limits article { background: var(--surface); border: var(--card-border); border-radius: var(--r-card); padding: 20px 22px; }
+  .limits b { display: block; color: var(--ink); font-size: 16px; font-weight: 500; letter-spacing: -.01em; }
+  .limits p { color: var(--ink-3); font-size: var(--t-sm); line-height: 1.6; margin-top: 6px; }
+
+  .letter-wrap { margin-top: 32px; text-align: left; }
+  .letter-sign .who { display: flex; align-items: center; gap: 12px; font-size: 15px; line-height: 1.3; color: var(--ink); }
+  .letter-sign .who small { display: block; color: var(--ink-3); font-size: 14px; }
+  .ending { padding: var(--section) 0 var(--s-7); }
+  .ending .lede { margin: 12px auto 24px; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .band { box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); } }
+  :root[data-theme="dark"] .band { box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); }
+  .band .ico { width: 36px; height: 36px; border-radius: 9px; flex: none; }
+  .band p { flex: 1; }
+  @media (max-width: 600px) { .band { flex-direction: column; align-items: flex-start; } }
+  @media (prefers-reduced-motion: reduce) { .wave i, .field .caret { animation: none; } }
+</style>
+</head>
+<body id="top">
+<header class="site-header">
+  <a class="wordmark" href="#top"><img class="mark" src="{{ICON}}" alt="">Talkit</a>
+  <nav><a class="quiet-link" href="#how">How it works</a><a class="btn btn-dark" href="https://github.com/goodrahstar/talkit">Get it on GitHub</a></nav>
+</header>
+<main>
+  <section class="hero centered wrap">
+    <p class="eyebrow">For iPhone</p>
+    <h1>You missed your stop typing that <em>reply</em>.</h1>
+    <p class="lede"><strong>Talkit is a keyboard that types what you say.</strong> Hold the bar, talk, let go. The words land where your cursor is, in any app.</p>
+    <a class="btn btn-dark" href="https://github.com/goodrahstar/talkit">Get Talkit on GitHub <span class="arrow">→</span></a>
+    <p class="fine"><span>Free and open source</span><span>Runs on your phone</span><span>No account</span></p>
+  </section>
+
+  <section class="wrap stage" aria-label="Talkit typing a WhatsApp reply">
+    <div class="annotate annotate-l"><span>hold to talk</span>
+      <svg width="70" height="48" viewBox="0 0 70 48" aria-hidden="true"><path d="M4 4c18 2 40 12 56 36"/><path d="M50 38l10 3 1-11"/></svg>
+    </div>
+    <div class="phone" id="phone" data-step="idle" aria-hidden="true">
+      <div class="screen">
+        <div class="island"></div>
+        <div class="status"><span>8:41<i class="mic-dot"></i></span><span>●●● ▮</span></div>
+        <div class="chat-head"><span class="back">‹</span><span class="face">M</span><span><b>Maya</b><small>online</small></span></div>
+        <div class="thread" id="thread">
+          <div class="bubble">we're at the table. where are you?<small>8:40</small></div>
+          <div class="bubble">order for you?<small>8:40</small></div>
+        </div>
+        <div class="compose"><div class="field" id="field"></div><span class="send"><svg viewBox="0 0 24 24"><path d="M3 20l18-8L3 4v6l12 2-12 2z"/></svg></span></div>
+        <div class="kb">
+          <div class="kb-bar" id="bar">
+            <b><svg class="mic" viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21h2v-2.1A7 7 0 0 0 19 12z"/></svg><span class="wave"><i></i><i></i><i></i><i></i><i></i></span><span id="bar-title">hold to talk</span></b>
+            <small id="bar-sub">talkit · runs on this phone</small>
+          </div>
+          <div class="kb-row"><span>🌐</span><span class="space">space</span><span>⌫</span><span>⏎</span></div>
+        </div>
+        <span class="finger"></span>
+      </div>
+    </div>
+    <div class="annotate"><span>let go, it's typed</span>
+      <svg width="70" height="48" viewBox="0 0 70 48" aria-hidden="true"><path d="M4 4c18 2 40 12 56 36"/><path d="M50 38l10 3 1-11"/></svg>
+    </div>
+    <p class="fine caption-steps"><span>Hold</span><span>Talk</span><span>Let go</span><span>Send</span></p>
+  </section>
+
+  <section class="section wrap centered">
+    <h2>Sound <em>familiar</em>?</h2>
+    <div class="sits">
+      <article class="sit reveal">
+        <span class="when">On the metro stairs</span>
+        <p class="pain">Coffee in one hand, thumbing "running ten minutes late" with the other. The doors close while you fix the typo.</p>
+        <p class="fix"><b>With Talkit:</b> hold, say it, let go. Your thumb never leaves the bar.</p>
+      </article>
+      <article class="sit reveal">
+        <span class="when">After the meeting</span>
+        <p class="pain">You sent a two-minute voice note instead. They'll play it tonight. Maybe.</p>
+        <p class="fix"><b>With Talkit:</b> you still just talk, but they get text they can read in five seconds.</p>
+      </article>
+      <article class="sit reveal">
+        <span class="when">In the back of a cab</span>
+        <p class="pain">A long reply to your boss, typed with one thumb. Carsick by the second paragraph.</p>
+        <p class="fix"><b>With Talkit:</b> look out of the window and talk. Read it once, then send.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="section wrap centered" id="how">
+    <h2>Three moves. <em>No</em> app switching.</h2>
+    <p class="lede" style="margin-top:12px">Talkit is a keyboard, so it works wherever you can type: WhatsApp, Messages, Mail, Notes.</p>
+    <div class="how">
+      <article class="reveal">
+        <span class="glyph"><svg viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="10" rx="3"/><path d="M9 12h6"/></svg></span>
+        <h3>Hold the bar</h3>
+        <p>Switch to Talkit with the globe key, then press and hold.</p>
+      </article>
+      <article class="reveal">
+        <span class="glyph"><svg viewBox="0 0 24 24"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z"/><path d="M19 11a7 7 0 0 1-14 0M12 18v3"/></svg></span>
+        <h3>Talk</h3>
+        <p>Say it the way you'd say it out loud. Punctuation comes for free.</p>
+      </article>
+      <article class="reveal">
+        <span class="glyph"><svg viewBox="0 0 24 24"><path d="M4 12h12M12 6l6 6-6 6"/></svg></span>
+        <h3>Let go</h3>
+        <p>The text is typed where your cursor is. No popup, no copy and paste.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="section wrap">
+    <div class="grid-3">
+      <article class="stat reveal"><strong class="num">0 bytes</strong><h3>Of your voice leave the phone</h3><p>The speech model runs on the iPhone itself. No account, no server, no upload.</p></article>
+      <article class="stat reveal"><strong class="num">3.5×</strong><h3>Faster on the Neural Engine</h3><p>Same model, same 20 clips, Neural Engine vs GPU, tested on a Mac. <a href="https://medium.com/@hellorahulk/your-mac-has-a-chip-built-for-ai-most-local-ai-tutorials-skip-it-bf367c1b5c7a">Read the test</a></p></article>
+      <article class="stat reveal"><strong class="num">460 MB</strong><h3>Downloaded once</h3><p>NVIDIA Parakeet v3. English and 24 other European languages.</p></article>
+    </div>
+  </section>
+
+  <section class="section wrap-narrow centered">
+    <h2>What it <em>can't</em> do yet.</h2>
+    <p class="lede" style="margin-top:12px">I'd rather you hear it from me than find out on the train.</p>
+    <div class="limits">
+      <article class="reveal"><b>It opens once per session.</b><p>iOS only lets an app start the microphone while it's on screen. So the first time, Talkit opens for a second and you tap back. After that it stays ready for up to an hour.</p></article>
+      <article class="reveal"><b>You'll see the orange dot.</b><p>That's iOS showing the mic is ready. Talkit only keeps audio between the moment you press and the moment you let go.</p></article>
+      <article class="reveal"><b>You install it from a Mac, for now.</b><p>No App Store or TestFlight yet. You build it with Xcode from the GitHub repo, and a free Apple account renews every 7 days.</p></article>
+    </div>
+  </section>
+
+  <section class="section wrap-narrow centered">
+    <h2>Why I <em>built</em> it.</h2>
+    <div class="letter letter-wrap reveal">
+      <div class="mac-bar"><span class="lights"><i></i><i></i><i></i></span>notes</div>
+      <div class="letter-body">
+        <p>On my Mac I dictate everything. I hold a key, talk, let go, and the text is there.</p>
+        <p>On my phone, every app I tried made me wait while the model loaded, or made me copy and paste between apps. By then I'd have been faster typing.</p>
+        <p>So I built the version I wanted: <mark>a keyboard you hold to talk, with the model already awake on the phone.</mark></p>
+      </div>
+      <div class="letter-sign"><span class="who"><i class="say-face" style="width:44px;height:44px">RK</i><span>Rahul<small>Built Talkit</small></span></span><span class="hand">Talkit</span></div>
+    </div>
+  </section>
+
+  <section class="section wrap-narrow">
+    <div class="band">
+      <img class="ico" src="{{ICON}}" alt="">
+      <p><b>Talk instead of thumb-typing.</b><span>Free, open source, and private by design.</span></p>
+      <a class="btn btn-light" href="https://github.com/goodrahstar/talkit">Get it on GitHub</a>
+    </div>
+  </section>
+
+  <section class="ending centered wrap">
+    <h2 class="display">Say it.<br>Let go. <em>Sent</em>.</h2>
+    <p class="lede">A keyboard for iPhone that types what you say.</p>
+    <a class="btn btn-dark" href="https://github.com/goodrahstar/talkit">Get Talkit on GitHub <span class="arrow">→</span></a>
+    <p class="fine" style="margin-top:12px"><span>MIT license</span><span>Needs an iPhone and a Mac with Xcode</span></p>
+  </section>
+</main>
+<footer class="foot-quiet">
+  <p class="fine"><a href="https://github.com/goodrahstar/talkit">GitHub</a><span>Built by Rahul with NVIDIA Parakeet and FluidAudio</span><span>© 2026 Talkit</span></p>
+</footer>
+<script>
+{{MOTION}}
+</script>
+<script>
+  // Hero demo: hold → listening → writing → typed → sent, on a loop.
+  (() => {
+    const phone = document.getElementById('phone'), field = document.getElementById('field'),
+      thread = document.getElementById('thread'), title = document.getElementById('bar-title'), sub = document.getElementById('bar-sub');
+    const text = "Running ten minutes late, the train is stuck outside the station. Order me the usual, thanks.";
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const set = (step, t, s) => { phone.dataset.step = step; title.textContent = t; sub.textContent = s; };
+    const idle = () => set('idle', 'hold to talk', 'talkit · runs on this phone');
+    if (reduce) { field.textContent = text; return; }
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    async function loop() {
+      for (;;) {
+        idle(); field.innerHTML = '<span class="caret"></span>';
+        await wait(1400);
+        set('listen', 'listening · let go to type', ' ');
+        await wait(2800);
+        set('write', 'writing', ' ');
+        await wait(450);
+        field.textContent = text; idle();
+        await wait(1700);
+        const b = document.createElement('div');
+        b.className = 'bubble me sent'; b.innerHTML = text + '<small>8:41 ✓✓</small>';
+        thread.append(b); field.innerHTML = '<span class="caret"></span>';
+        await wait(2600);
+        b.remove();
+      }
+    }
+    loop();
+  })();
+</script>
+</body>
+</html>
