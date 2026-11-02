@@ -6,6 +6,12 @@
 
 **A free, open source speech-to-text keyboard for iPhone that runs entirely on your phone.**
 
+<p align="center">
+  <a href="docs/media/talkit-demo.mp4"><img src="docs/media/talkit-demo.jpg" width="300" alt="Talkit demo: hold, talk, let go, typed in WhatsApp"></a>
+</p>
+
+<p align="center">30-second demo: hold the bar, talk, let go. Typed in WhatsApp.</p>
+
 Talkit is a hold-to-talk keyboard. Hold the bar, speak, let go, and your words are typed into whatever app you're using: WhatsApp, Messages, Notes, Mail. The speech model runs on the iPhone's Neural Engine, so your voice never leaves the phone.
 
 The same engine also runs on the Mac as a local transcription server, so desktop dictation apps can use it too.
